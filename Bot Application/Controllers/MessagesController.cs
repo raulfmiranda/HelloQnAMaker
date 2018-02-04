@@ -1,8 +1,12 @@
-﻿using System.Net;
+﻿using System;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Connector;
 
 namespace Bot_Application
@@ -16,10 +20,27 @@ namespace Bot_Application
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
+            var currentUICulture = Thread.CurrentThread.CurrentUICulture;
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+
             if (activity.Type == ActivityTypes.Message)
             {
                 //await Conversation.SendAsync(activity, () => new Dialogs.QnaDialog());
-                await Conversation.SendAsync(activity, () => new Dialogs.RootDialog());
+                //await Conversation.SendAsync(activity, () => new Dialogs.RootDialog());
+                await this.SendConversation(activity);
+            }
+            else if(activity.Type == ActivityTypes.ConversationUpdate)
+            {
+                if(activity.MembersAdded != null && activity.MembersAdded.Any())
+                {
+                    foreach(var member in activity.MembersAdded)
+                    {
+                        if(member.Id != activity.Recipient.Id)
+                        {
+                            await this.SendConversation(activity);
+                        }
+                    }
+                }
             }
             else
             {
@@ -27,6 +48,11 @@ namespace Bot_Application
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
+        }
+
+        private async Task SendConversation(Activity activity)
+        {
+            await Conversation.SendAsync(activity, () => Chain.From(() => FormDialog.FromForm(() => Formulario.Pedido.BuildForm(), FormOptions.PromptFieldsWithValues)));
         }
 
         private Activity HandleSystemMessage(Activity message)
