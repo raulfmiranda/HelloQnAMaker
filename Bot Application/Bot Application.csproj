@@ -133,6 +133,7 @@
     <Compile Include="Dialogs\QnaDialog.cs" />
     <Compile Include="Dialogs\RootDialog.cs" />
     <Compile Include="Formulario\Pedido.cs" />
+    <Compile Include="Formulario\Questionario.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
